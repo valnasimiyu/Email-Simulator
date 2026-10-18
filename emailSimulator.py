@@ -2,22 +2,27 @@ import datetime
 
 class Email:
     def __init__(self, sender, receiver, subject, body):
+        # sender and receiver are User objects 
         self.sender = sender
         self.receiver = receiver
         self.subject = subject
         self.body = body
+        # Record the moment the email object was created
         self.timestamp = datetime.datetime.now()
+        # New emails always start out unread.
         self.read = False
 
     def mark_as_read(self):
         self.read = True
 
     def display_full_email(self):
+        # Opening an email counts as reading it
         self.mark_as_read()
         print('\n--- Email ---')
         print(f'From: {self.sender.name}')
         print(f'To: {self.receiver.name}')
         print(f'Subject: {self.subject}')
+        # strftime formats the datetime as e.g. "2026-10-18 14:30".
         print(f"Received: {self.timestamp.strftime('%Y-%m-%d %H:%M')}")
         print(f'Body: {self.body}')
         print('------------\n')
@@ -29,10 +34,12 @@ class Email:
 class User:
     def __init__(self, name):
         self.name = name
+        # Every user gets a fresh, empty inbox.
         self.inbox = Inbox()
 
     def send_email(self, receiver, subject, body):
         email = Email(sender=self, receiver=receiver, subject=subject, body=body)
+        # Delivery = appending the email to the receiver's inbox.
         receiver.inbox.receive_email(email)
         print(f'Email sent from {self.name} to {receiver.name}!\n')
 
@@ -48,6 +55,7 @@ class User:
 
 class Inbox:
     def __init__(self):
+        # Emails are kept in arrival order (oldest first).
         self.emails = []
 
     def receive_email(self, email):
@@ -58,20 +66,25 @@ class Inbox:
             print('Your inbox is empty.\n')
             return
         print('\nYour Emails:')
+        # start=1 so users see friendly numbering (1, 2, 3...) instead of 0-based.
         for i, email in enumerate(self.emails, start=1):
             print(f'{i}. {email}')
 
     def read_email(self, index):
+        """Display the full email at the given 1-based index, with validation."""
         if not self.emails:
             print('Inbox is empty.\n')
             return
+        # Convert the user's 1-based number to Python's 0-based list index.
         actual_index = index - 1
+        # Guard against out-of-range numbers (zero, negatives, too large).
         if actual_index < 0 or actual_index >= len(self.emails):
             print('Invalid email number.\n')
             return
         self.emails[actual_index].display_full_email()
 
     def delete_email(self, index):
+         """Remove the email at the given 1-based index, with validation."""
         if not self.emails:
             print('Inbox is empty.\n')
             return
@@ -79,10 +92,13 @@ class Inbox:
         if actual_index < 0 or actual_index >= len(self.emails):
             print('Invalid email number.\n')
             return
+        # Deleting shifts later emails up, so remaining numbers change.
         del self.emails[actual_index]
         print('Email deleted.\n')
 
 def main():
+    """Run a short demo: two users exchange emails, then one reads and deletes."""
+    # Create two users, each with their own empty inbox.
     tory = User('Tory')
     ramy = User('Ramy')        
     
@@ -92,5 +108,7 @@ def main():
     ramy.read_email(1)
     ramy.delete_email(1)
     ramy.check_inbox()
+# Only run the demo when this file is executed directly,
+# not when it is imported as a module.
 if __name__ == '__main__':
     main()
