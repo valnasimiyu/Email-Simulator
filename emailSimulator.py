@@ -1,4 +1,9 @@
 import datetime
+import re
+
+def is_valid_address(address):
+    pattern = r'^[^@\s]+@[^@\s]+\.[^@\s]+$'
+    return isinstance(address, str) and re.match(pattern, address) is not None
 
 class Email:
     def __init__(self, sender, receiver, subject, body):
@@ -32,12 +37,21 @@ class Email:
         return f"[{status}] From: {self.sender.name} | Subject: {self.subject} | Time: {self.timestamp.strftime('%Y-%m-%d %H:%M')}"
 
 class User:
-    def __init__(self, name):
+    def __init__(self, name,address):
+         if not is_valid_address(address):
+            raise ValueError(f'Invalid email address: {address}')
         self.name = name
+        self.address = address
         # Every user gets a fresh, empty inbox.
         self.inbox = Inbox()
 
     def send_email(self, receiver, subject, body):
+        if not isinstance(receiver, User):
+            print('Error: receiver must be a User.\n')
+            return False
+        if not subject or not subject.strip():
+            print('Error: subject cannot be empty.\n')
+            return False
         email = Email(sender=self, receiver=receiver, subject=subject, body=body)
         # Delivery = appending the email to the receiver's inbox.
         receiver.inbox.receive_email(email)
@@ -97,16 +111,13 @@ class Inbox:
         print('Email deleted.\n')
 
 def main():
-    """Run a short demo: two users exchange emails, then one reads and deletes."""
-    # Create two users, each with their own empty inbox.
-    tory = User('Tory')
-    ramy = User('Ramy')        
-    
+  def main():
+    tory = User('Tory', 'tory@example.com')
+    ramy = User('Ramy', 'ramy@example.com')
+
     tory.send_email(ramy, 'Hello', 'Hi Ramy, just saying hello!')
-    ramy.send_email(tory, 'Re: Hello', 'Hi Tory, hope you are fine.')
-    ramy.check_inbox()
-    ramy.read_email(1)
-    ramy.delete_email(1)
+    tory.send_email(ramy, '   ', 'This should fail')    # empty subject
+    tory.send_email('not a user', 'Hi', 'This too')      # bad receiver
     ramy.check_inbox()
 # Only run the demo when this file is executed directly,
 # not when it is imported as a module.
